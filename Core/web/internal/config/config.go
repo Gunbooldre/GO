@@ -1,34 +1,56 @@
 package config
 
 import (
-	"log"
-	"os"
+	"fmt"
+	"strings"
 	"time"
+
+	"github.com/caarlos0/env/v11"
 )
 
+var cfg Config
+
 type Config struct {
-	Env         string `yaml:"env" env-default:"development" env-required:"true"`
-	StoragePath string `yaml:"storage_path" env-default:"./storage" env-required:"true"`
+	Env         string `env:"ENV" envDefault:"development"`
+	StoragePath string `env:"STORAGE_PATH" envDefault:"./storage"`
 	HTTPServer  HTTPServer
 }
 
 type HTTPServer struct {
-	Port        string        `yaml:"port" env-default:"8000"`
-	Timeout     time.Duration `yaml:"timeout" env-default:"5s"`
-	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"5s"`
+	Port        string        `env:"PORT" envDefault:"8000"`
+	Timeout     time.Duration `env:"TIMEOUT" envDefault:"5s"`
+	IdleTimeout time.Duration `env:"IDLE_TIMEOUT" envDefault:"60s"`
 }
 
-func MustLoad() {
-	configPath := os.Getenv("CONFIG_PATH")
-	if configPath == "" {
-		log.Fatal("CONFIG_PATH environment variable not set")
+func New() (*Config, error) {
+	c := Config{}
+	if err := env.Parse(&c); err != nil {
+		return nil, fmt.Errorf("config: parse env: %w", err)
+	}
+	if err := c.validate(); err != nil {
+		return nil, err
 	}
 
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		log.Fatalf("CONFIG_PATH does not exist %s", configPath)
+	cfg = c
+
+	return &cfg, nil
+}
+
+func Get() *Config {
+	return &cfg
+}
+
+func (c *Config) validate() error {
+	rules := []struct {
+		failed bool
+		err    error
+	}{
+		{strings.TrimSpace(c.Env) == "", fmt.Errorf("config: Env is required")},
 	}
-
-	var cfg Config
-
-	if err := cleanenv.ReadConfig
+	for _, rule := range rules {
+		if rule.failed {
+			return rule.err
+		}
+	}
+	return nil
 }

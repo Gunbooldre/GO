@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"web/internal/config"
+	"web/internal/storage/sqllite"
 )
 
 func main() {
@@ -16,6 +17,27 @@ func main() {
 	log := setupLogger(cfg.Env)
 	log.Info("Start", slog.String("env", cfg.Env))
 	fmt.Println("Hello World")
+
+	storage, err := sqllite.New(cfg.StoragePath)
+	if err != nil {
+		log.Error("sqllite.New", "err", err)
+	}
+
+	//id, err := storage.SaveUrl("https://google.com", "google")
+	//if err != nil {
+	//	log.Error("storage.SaveUrl", "err", err, "id", id)
+	//} else {
+	//	log.Info("URL SAVED", id)
+	//}
+
+	res, err := storage.GetUrl(1)
+	if err != nil {
+		log.Info("storage.GetUrl", "err", err)
+	} else {
+		log.Info("storage.GetUrl", "res", res)
+	}
+
+	_ = storage
 }
 
 func setupLogger(env string) *slog.Logger {

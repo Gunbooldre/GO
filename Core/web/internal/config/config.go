@@ -8,10 +8,16 @@ import (
 	"github.com/caarlos0/env/v11"
 )
 
+const (
+	Envlocal = "local"
+	EnvDev   = "dev"
+	EnvProd  = "prod"
+)
+
 var cfg Config
 
 type Config struct {
-	Env         string `env:"ENV" envDefault:"development"`
+	Env         string `env:"ENV" envDefault:"local"`
 	StoragePath string `env:"STORAGE_PATH" envDefault:"./storage"`
 	HTTPServer  HTTPServer
 }

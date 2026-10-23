@@ -7,6 +7,9 @@ import (
 	"os"
 	"web/internal/config"
 	"web/internal/storage/sqllite"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
@@ -38,6 +41,12 @@ func main() {
 	}
 
 	_ = storage
+
+	router := chi.NewRouter()
+	router.Use(middleware.RequestID)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
 }
 
 func setupLogger(env string) *slog.Logger {

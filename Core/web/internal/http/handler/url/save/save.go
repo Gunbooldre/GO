@@ -3,9 +3,12 @@ package save
 import (
 	"log/slog"
 	"net/http"
-	"web/internal/lib/api/response"
+	resp "web/internal/lib/api/response"
+
+	"github.com/go-chi/render"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-playground/validator/v10"
 )
 
 type Request struct {
@@ -13,8 +16,8 @@ type Request struct {
 	Alias string `json:"alias" validate:"required"`
 }
 
-type Responce struct {
-	response.Response
+type Resposce struct {
+	resp.Response
 	Alias string `json:"alias,omitempty"`
 }
 
@@ -33,9 +36,16 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		err := render.DecodeJSON(r.Body, &req)
 
 		if err != nil {
-			log.Error("failed to decode request body,", slog.Err(err))
+			log.Error("failed to decode request body,", slog.Any("reg", err))
 			render.JSON(w, r, resp.Error("Failed to decode request"))
 
+			return
+		}
+		log.Info("Request body decoded", slog.Any("body", req))
+		if err := validator.New().Struct(req); err != nil {
+			validatorErr := err.(validator.ValidationErrors)
+			log.Error("failed to validate request body", slog.Any("body", req))
+			render.JSON(w, r, resp.ValidateErrors(validatorErr))
 			return
 		}
 	}

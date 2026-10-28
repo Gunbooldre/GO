@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"net/http"
 	"os"
 	"web/internal/config"
 	"web/internal/http/handler/url/save"
@@ -27,13 +28,6 @@ func main() {
 		log.Error("sqllite.New", "err", err)
 	}
 
-	//id, err := storage.SaveUrl("https://google.com", "google")
-	//if err != nil {
-	//	log.Error("storage.SaveUrl", "err", err, "id", id)
-	//} else {
-	//	log.Info("URL SAVED", id)
-	//}
-
 	res, err := storage.GetUrl(1)
 	if err != nil {
 		log.Info("storage.GetUrl", "err", err)
@@ -50,6 +44,20 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	router.Post("/url", save.New(log, storage))
+	log.Info("Start", slog.String("env", cfg.HTTPServer.Port))
+
+	srv := &http.Server{
+		Addr:              cfg.HTTPServer.Port,
+		Handler:           router,
+		ReadHeaderTimeout: cfg.HTTPServer.Timeout,
+		WriteTimeout:      cfg.HTTPServer.Timeout,
+		IdleTimeout:       cfg.HTTPServer.IdleTimeout,
+	}
+
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("srv.ListenAndServe", "err", err)
+	}
+	log.Error("Server Stopped")
 }
 
 func setupLogger(env string) *slog.Logger {

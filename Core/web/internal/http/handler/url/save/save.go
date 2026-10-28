@@ -1,9 +1,13 @@
 package save
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
+	"web/internal/config"
 	resp "web/internal/lib/api/response"
+	"web/internal/lib/random"
+	"web/internal/storage"
 
 	"github.com/go-chi/render"
 
@@ -16,7 +20,7 @@ type Request struct {
 	Alias string `json:"alias" validate:"required"`
 }
 
-type Resposce struct {
+type Response struct {
 	resp.Response
 	Alias string `json:"alias,omitempty"`
 }
@@ -48,5 +52,31 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			render.JSON(w, r, resp.ValidateErrors(validatorErr))
 			return
 		}
+
+		alias := req.Alias
+		if alias == "" {
+			alias = random.NewRandomString(config.AliasLength)
+		}
+
+		id, err := urlSaver.SaveUrl(req.URL, alias)
+		if errors.Is(err, storage.ErrUrlExist) {
+			log.Info("url already exists", slog.Any("url", req.URL))
+			render.JSON(w, r, resp.Error("URL already exists"))
+			return
+		}
+		if err != nil {
+			log.Error("Failed to add URL", slog.Any("err", err))
+			render.JSON(w, r, resp.Error("Failed to add URL"))
+			return
+		}
+		log.Info("URL added", slog.Int64("ID", id))
+		responseOK(w, r, alias)
 	}
+}
+
+func responseOK(w http.ResponseWriter, r *http.Request, alias string) {
+	render.JSON(w, r, Response{
+		Response: resp.OK(),
+		Alias:    alias,
+	})
 }

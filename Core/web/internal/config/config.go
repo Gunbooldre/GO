@@ -14,6 +14,8 @@ const (
 	EnvProd  = "prod"
 )
 
+const AliasLength = 6
+
 var cfg Config
 
 type Config struct {

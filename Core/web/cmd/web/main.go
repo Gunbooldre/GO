@@ -44,10 +44,11 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	router.Post("/url", save.New(log, storage))
-	log.Info("Start", slog.String("env", cfg.HTTPServer.Port))
+	router.Get("/alias", redirect.New(log, storage))
+	log.Info("Start", slog.String("env", cfg.HTTPServer.Address))
 
 	srv := &http.Server{
-		Addr:              cfg.HTTPServer.Port,
+		Addr:              cfg.HTTPServer.Address,
 		Handler:           router,
 		ReadHeaderTimeout: cfg.HTTPServer.Timeout,
 		WriteTimeout:      cfg.HTTPServer.Timeout,

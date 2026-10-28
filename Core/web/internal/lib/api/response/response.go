@@ -46,4 +46,5 @@ func ValidateErrors(errs validator.ValidationErrors) Response {
 			Error:  strings.Join(errMaps, "; "),
 		}
 	}
+	return Response{}
 }

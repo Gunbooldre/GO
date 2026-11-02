@@ -41,6 +41,6 @@ func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 			return
 		}
 		log.Info("Redirect", alias, resURL)
-		http.Redirect(w, r, res]чсURL, http.StatusFound)
+		http.Redirect(w, r, resURL, http.StatusFound)
 	}
 }

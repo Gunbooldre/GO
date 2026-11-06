@@ -19,7 +19,7 @@ type URLGetter interface {
 func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.url.redirect.New"
-		log = log.With(
+		log := log.With(
 			slog.String("op", op),
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
@@ -31,16 +31,16 @@ func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 		}
 		resURL, err := urlGetter.GetURL(alias)
 		if errors.Is(err, storage.ErrURLNotFound) {
-			log.Info("Not FOUND", alias)
+			log.Info("url not found", slog.String("alias", alias))
 			render.JSON(w, r, resp.Error("Not FOUND"))
 			return
 		}
 		if err != nil {
-			log.Error(err.Error(), alias)
+			log.Error("failed to get url", slog.String("alias", alias), slog.String("err", err.Error()))
 			render.JSON(w, r, resp.Error("Internal Error"))
 			return
 		}
-		log.Info("Redirect", alias, resURL)
+		log.Info("redirect", slog.String("alias", alias), slog.String("url", resURL))
 		http.Redirect(w, r, resURL, http.StatusFound)
 	}
 }

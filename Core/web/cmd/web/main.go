@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"web/internal/config"
+	"web/internal/http/handler/delete"
+	"web/internal/http/handler/redirect"
 	"web/internal/http/handler/url/save"
 	"web/internal/storage/sqllite"
 
@@ -44,7 +46,8 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	router.Post("/url", save.New(log, storage))
-	router.Get("/alias", redirect.New(log, storage))
+	router.Get("/{alias}", redirect.New(log, storage))
+	router.Delete("/{alias}", delete.New(log, storage))
 	log.Info("Start", slog.String("env", cfg.HTTPServer.Address))
 
 	srv := &http.Server{

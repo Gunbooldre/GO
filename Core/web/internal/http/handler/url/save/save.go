@@ -16,7 +16,7 @@ import (
 )
 
 type Request struct {
-	URL   string `json:"url" validate:"required, url"`
+	URL   string `json:"url" validate:"required,url"`
 	Alias string `json:"alias" validate:"required"`
 }
 

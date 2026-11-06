@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
 	"web/internal/config"
+	"web/internal/http/handler/all"
 	"web/internal/http/handler/delete"
 	"web/internal/http/handler/redirect"
 	"web/internal/http/handler/url/save"
@@ -23,7 +23,6 @@ func main() {
 	}
 	log := setupLogger(cfg.Env)
 	log.Info("Start", slog.String("env", cfg.Env))
-	fmt.Println("Hello World")
 
 	storage, err := sqllite.New(cfg.StoragePath)
 	if err != nil {
@@ -45,9 +44,17 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Post("/url", save.New(log, storage))
+	router.Route("/url", func(r chi.Router) {
+		r.Use(middleware.BasicAuth("web", map[string]string{
+			cfg.HTTPServer.User: cfg.HTTPServer.Password,
+		}))
+		r.Post("/", save.New(log, storage))
+		r.Delete("/{alias}", delete.New(log, storage))
+
+	})
+
 	router.Get("/{alias}", redirect.New(log, storage))
-	router.Delete("/{alias}", delete.New(log, storage))
+	router.Get("/", all.New(log, storage))
 	log.Info("Start", slog.String("env", cfg.HTTPServer.Address))
 
 	srv := &http.Server{

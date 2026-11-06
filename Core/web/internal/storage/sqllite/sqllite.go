@@ -13,6 +13,12 @@ type Storage struct {
 	db *sql.DB
 }
 
+type Web struct {
+	Id    int
+	Alias string
+	Url   string
+}
+
 func New(storagePath string) (*Storage, error) {
 	const op = "storage.sqllite.New"
 	db, err := sql.Open("sqlite3", storagePath)
@@ -104,4 +110,21 @@ func (s *Storage) DeleteUrl(alias string) (string, error) {
 		return "", storage.ErrURLNotFound
 	}
 	return "The alias was deleted", nil
+}
+
+func (s *Storage) GetAll() ([]Web, error) {
+	const op = "storage.sqlite.GetAll"
+	rows, err := s.db.Query("SELECT id, alias, url FROM web")
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	var result []Web
+	for rows.Next() {
+		var w Web
+		if err := rows.Scan(&w.Id, &w.Alias, &w.Url); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		result = append(result, w)
+	}
+	return result, nil
 }

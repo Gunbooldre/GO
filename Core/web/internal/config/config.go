@@ -29,6 +29,8 @@ type HTTPServer struct {
 	Port        string        `env:"PORT" envDefault:"8000"`
 	Timeout     time.Duration `env:"TIMEOUT" envDefault:"5s"`
 	IdleTimeout time.Duration `env:"IDLE_TIMEOUT" envDefault:"60s"`
+	User        string        `env:"USERNAME" `
+	Password    string        `env:"PASSWORD" `
 }
 
 func New() (*Config, error) {

@@ -28,16 +28,6 @@ func main() {
 	if err != nil {
 		log.Error("sqllite.New", "err", err)
 	}
-
-	res, err := storage.GetUrl(1)
-	if err != nil {
-		log.Info("storage.GetUrl", "err", err)
-	} else {
-		log.Info("storage.GetUrl", "res", res)
-	}
-
-	_ = storage
-
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
